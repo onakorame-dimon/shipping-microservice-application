@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY ./worker /app
+COPY . /app
 
 #create a virtual env
 RUN python3 -m venv .venv
