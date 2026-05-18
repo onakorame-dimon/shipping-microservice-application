@@ -1,0 +1,63 @@
+name: project
+
+services:
+  frontend:
+    image: "frontend:v2.0.0"
+     
+    ports:
+     - "3000:3000"
+    networks:
+        - app-network
+    env_file: .frontend.env
+    depends_on:
+       backend:
+        condition: service_healthy
+       worker:
+        condition: service_healthy
+    mem_limit: 50m
+    cpus: 0.5
+
+  backend:
+    image: "backend:v2.0.0"
+    networks:
+      - app-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file: .backend.env
+    mem_limit: 50m
+    cpus: 0.5
+
+  worker:
+    image: "worker:v2.0.0"
+    networks:
+      - app-network    
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file: .backend.env
+    mem_limit: 50m
+    cpus: 0.5
+  
+
+
+  redis:
+    image: "redis:8.0-alpine"
+    networks: 
+      - app-network
+    env_file: .backend.env
+    command: /bin/sh -c "redis-server --requirepass $${REDIS_PASSWORD}" 
+    healthcheck:
+      test: redis-cli -a ${REDIS_PASSWORD} ping || exit 1
+      start_period: 5s
+      start_interval: 1s
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    mem_limit: 50m
+    cpus: 0.5
+
+networks:
+  app-network:
+    
+
