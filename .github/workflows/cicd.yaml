@@ -1,0 +1,188 @@
+name: lint
+
+on: 
+  workflow_dispatch
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+    
+    #setting up python
+      - name: set up python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.12
+          cache: "pip"
+
+      - name: Install linting tools
+        run: |
+          echo "Installing linting tools. . ."
+          npm install -g eslint
+
+      - name: Install Python linting tools
+        run: |                    
+          pip install flake8         
+          
+
+      - name: lint frontend code
+        working-directory: ./services/frontend
+        run: |
+          echo "Linting frontend code. . ."                  
+          npm ci          
+          npm run lint
+        
+      - name: lint api code    
+        run: |
+          echo "Linting api code. . ."
+          flake8 --exit-zero ./services/api
+
+
+      - name: lint worker code
+        run: |        
+          echo "Linting worker code. . ."
+          flake8 --exit-zero ./services/worker
+      
+      - name: Lint frontend Dockerfile       
+        uses: hadolint/hadolint-action@master
+        with:
+          dockerfile: "./services/frontend/Dockerfile"
+          failure-threshold: "error"
+      
+      - name: Lint api Dockerfile
+        uses: hadolint/hadolint-action@master
+        with:
+          dockerfile: "./services/api/Dockerfile"
+          failure-threshold: "error"
+          
+      - name: Lint worker Dockerfile
+        uses: hadolint/hadolint-action@master
+        with:
+          dockerfile: "./services/worker/Dockerfile"
+          failure-threshold: "error"
+  
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: set up python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.12
+          cache: "pip"
+
+      - name: Install Application dependencies
+        working-directory: ./services/api
+        run: |
+          pip install -r requirements.txt
+    
+      - name: Install Python testing tools
+        run: | 
+          pip install pytest pytest-cov
+
+      - name: Run tests
+        working-directory: ./services/api        
+        run: |
+          pytest --cov=main test.py --cov-report xml:coverage.xml
+          ls -l 
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7
+        with:
+          name: pytest-coverage-report
+          path: ./services/api/coverage.xml
+          retention-days: 2
+  
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      registry:
+        image: registry:3
+        ports:
+          - "5000:5000"
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        
+      - name: Build frontend Docker image
+        working-directory: ./services/frontend
+        run: |
+          echo "Building frontend Docker image. . ."
+          docker build -t localhost:5000/frontend:latest -t "localhost:5000/frontend:${GITHUB_SHA}" . 
+
+      - name: Build api Docker image
+        working-directory: ./services/api
+        run: |
+          echo "Building api Docker image. . ."
+          docker build -t localhost:5000/api:latest -t "localhost:5000/api:${GITHUB_SHA}" .
+
+      - name: Build worker Docker image
+        working-directory: ./services/worker
+        run: |
+          echo "Building worker Docker image. . ."
+          docker build -t localhost:5000/worker:latest -t "localhost:5000/worker:${GITHUB_SHA}" .
+
+      - name: Push Docker images to local registry
+        run: |
+          docker push localhost:5000/frontend:latest
+          docker push localhost:5000/api:latest
+          docker push localhost:5000/worker:latest
+        
+      - name: check images
+        run: |
+          docker images
+
+# TODO
+# Does using matrix strategy optimize pipeline execution time?
+# Replace all this job with a matrix strategy to optimize pipeline execution time  
+  sec-scan:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: frontend trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: localhost:5000/frontend:latest
+          format: 'sarif'
+          output: 'frontend-scan.sarif'
+          exit-code: '1'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+          
+      - name: api trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: localhost:5000/api:latest
+          format: 'sarif'
+          output: 'api-scan.sarif'
+          exit-code: '1'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+                
+      - name: worker trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: localhost:5000/worker:latest
+          format: 'sarif'
+          output: 'worker-scan.sarif'
+          exit-code: '1'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+          
+
+      #Replace this with upload sarif action    
+      - name: Upload trivy scan reports
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-scan-reports
+          path: '*.sarif'
+          retention-days: 1
+      
