@@ -136,21 +136,57 @@ jobs:
           docker push localhost:5000/api:latest
           docker push localhost:5000/worker:latest
         
-      - name: check images
+      - name: Save images as tar files
         run: |
-          docker images
+          docker save localhost:5000/frontend:latest -o frontend.tar
+          docker save localhost:5000/api:latest -o api.tar
+          docker save localhost:5000/worker:latest -o worker.tar
+          
+      - name: upload frontend image as artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-image
+          path: frontend.tar
+      
+      - name: upload api docker image as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: api-image
+          path: api.tar
+
+      - name: upload worker docker image as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: worker-image
+          path: worker.tar
 
 # TODO
 # Does using matrix strategy optimize pipeline execution time?
 # Replace all this job with a matrix strategy to optimize pipeline execution time  
   sec-scan:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  
+
     steps:
+      - name: download frontend artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: frontend-image
+
+      - name: download api image artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: api-image
+
+      - name: download worker image artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: worker-image
+
       - name: frontend trivy scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: localhost:5000/frontend:latest
+          input: 'frontend.tar'
           format: 'sarif'
           output: 'frontend-scan.sarif'
           exit-code: '1'
@@ -160,7 +196,7 @@ jobs:
       - name: api trivy scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: localhost:5000/api:latest
+          input: 'api.tar'
           format: 'sarif'
           output: 'api-scan.sarif'
           exit-code: '1'
@@ -170,7 +206,7 @@ jobs:
       - name: worker trivy scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: localhost:5000/worker:latest
+          input: 'worker.tar'
           format: 'sarif'
           output: 'worker-scan.sarif'
           exit-code: '1'
