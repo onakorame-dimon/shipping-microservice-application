@@ -166,7 +166,10 @@ jobs:
 # Replace all this job with a matrix strategy to optimize pipeline execution time  
   sec-scan:
     needs: build
-    runs-on: ubuntu-latest  
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
 
 # TODO: Use docker load images to download images from tar
     steps:
