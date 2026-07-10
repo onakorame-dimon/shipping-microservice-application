@@ -136,6 +136,7 @@ jobs:
           docker push localhost:5000/api:latest
           docker push localhost:5000/worker:latest
         
+      # TODO: Upload a single image as an artifact 
       - name: Save images as tar files
         run: |
           docker save localhost:5000/frontend:latest -o frontend.tar
@@ -167,6 +168,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest  
 
+# TODO: Use docker load images to download images from tar
     steps:
       - name: download frontend artifact
         uses: actions/download-artifact@v7
@@ -212,13 +214,23 @@ jobs:
           exit-code: '1'
           vuln-type: 'os,library'
           severity: 'CRITICAL'
-          
 
-      #Replace this with upload sarif action    
-      - name: Upload trivy scan reports
-        uses: actions/upload-artifact@v7
+      #TODO: matrix build to optimize pipeline execution time    
+      - name: Upload trivy scan reports to GitHub security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
         with:
-          name: trivy-scan-reports
-          path: '*.sarif'
-          retention-days: 1
+          sarif_file: frontend-scan.sarif
+
+      - name: upload api trivy scan report to GitHub security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: api-scan.sarif   
+
+      - name: upload worker trivy scan report to GitHub security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: worker-scan.sarif
       
