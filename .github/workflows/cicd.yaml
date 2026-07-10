@@ -188,7 +188,39 @@ jobs:
         with:
           name: worker-image
 
+    # Non-blocking trivy with visibility
+
+      - name: frontend trivy non-blocking scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          input: 'frontend.tar'
+          format: 'table'
+          exit-code: '0'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+      - name: api trivy non-blocking scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          input: 'api.tar'
+          format: 'table'
+          exit-code: '0'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+        
+      - name: worker trivy non-blocking scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          input: 'worker.tar'
+          format: 'table'
+          exit-code: '0'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+# Blocking scan
       - name: frontend trivy scan
+        id: frontend-trivy-scan
+        continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
           input: 'frontend.tar'
@@ -199,6 +231,8 @@ jobs:
           severity: 'CRITICAL'
           
       - name: api trivy scan
+        id: api-trivy-scan
+        continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
           input: 'api.tar'
@@ -209,6 +243,8 @@ jobs:
           severity: 'CRITICAL'
                 
       - name: worker trivy scan
+        id: worker-trivy-scan
+        continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
           input: 'worker.tar'
@@ -218,22 +254,24 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL'
 
-      #TODO: matrix build to optimize pipeline execution time    
-      - name: Upload trivy scan reports to GitHub security tab
-        uses: github/codeql-action/upload-sarif@v4
+      # Upload trivy scan as artifact
+      - name: Upload trivy scan as artifact
+        uses: actions/upload-artifact@v7
         if: always()
         with:
-          sarif_file: frontend-scan.sarif
+          name: trivy-scan
+          paths: |
+            frontend-scan.sarif
+            api-scan.sarif
+            worker-scan.sarif
 
-      - name: upload api trivy scan report to GitHub security tab
-        uses: github/codeql-action/upload-sarif@v4
+      # Fail pipeline if any trivy scan fails
+      - name: Fail pipeline if any trivy scan fails
         if: always()
-        with:
-          sarif_file: api-scan.sarif   
-
-      - name: upload worker trivy scan report to GitHub security tab
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: worker-scan.sarif
-      
+        run: |
+        
+          if [[ "${{ steps.frontend-trivy-scan.outcome }}" == "failure" || "${{ steps.api-trivy-scan.outcome }}" == "failure" || "${{ steps.worker-trivy-scan.outcome }}" == "failure" ]]; then
+            echo "One or more trivy scans failed. Failing the pipeline."
+            exit 1
+          fi
+    
