@@ -268,6 +268,15 @@ jobs:
             frontend-scan.sarif
             api-scan.sarif
             worker-scan.sarif
+      
+      # Upload trivy in GitHub security tab
+      - name: Upload trivy scan to GitHub security tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: |
+            frontend-scan.sarif
+            api-scan.sarif
+            worker-scan.sarif
 
       # Fail pipeline if any trivy scan fails
       - name: Fail pipeline if any trivy scan fails
