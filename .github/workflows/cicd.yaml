@@ -229,7 +229,7 @@ jobs:
           exit-code: '1'
           vuln-type: 'os,library'
           severity: 'CRITICAL'
-          ignore-unfixed: true #limit-severities-for-sarif: true
+          limit-severities-for-sarif: true
           
       - name: api trivy scan
         id: api-trivy-scan
@@ -242,7 +242,7 @@ jobs:
           exit-code: '1'
           vuln-type: 'os,library'
           severity: 'CRITICAL'
-          ignore-unfixed: true #limit-severities-for-sarif: true
+          limit-severities-for-sarif: true
                 
       - name: worker trivy scan
         id: worker-trivy-scan
@@ -255,7 +255,7 @@ jobs:
           exit-code: '1'
           vuln-type: 'os,library'
           severity: 'CRITICAL'
-          ignore-unfixed: true #limit-severities-for-sarif: true
+          limit-severities-for-sarif: true
 
 
       # Upload trivy scan as artifact
