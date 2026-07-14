@@ -269,11 +269,6 @@ jobs:
             api-scan.sarif
             worker-scan.sarif
       
-      # Organize trivy scan sarifs into a folder
-      - name: Organize trivy scan sarifs into a folder
-        run: |
-          mkdir -p sarif-results
-          mv *.sarif sarif-results/
       
       # Upload trivy in GitHub security tab
       - name: Upload frontend trivy scan to GitHub security tab
