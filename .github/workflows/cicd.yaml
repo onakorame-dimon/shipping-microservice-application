@@ -267,16 +267,19 @@ jobs:
           path: |
             frontend-scan.sarif
             api-scan.sarif
-            worker-scan.sarif
+      
+      # Organize trivy scan sarifs into a folder
+      - name: Organize trivy scan sarifs into a folder
+        run: |
+          mkdir -p sarif-results
+          mv *.sarif sarif-results/
       
       # Upload trivy in GitHub security tab
-      - name: Upload trivy scan to GitHub security tab
+      - name: Upload frontend trivy scan to GitHub security tab
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: |
-            frontend-scan.sarif
-            api-scan.sarif
-            worker-scan.sarif
+          sarif_file: sarif-results
+            
 
       # Fail pipeline if any trivy scan fails
       - name: Fail pipeline if any trivy scan fails
