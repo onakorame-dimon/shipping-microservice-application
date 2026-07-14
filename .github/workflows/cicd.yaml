@@ -264,7 +264,7 @@ jobs:
         if: always()
         with:
           name: trivy-scan
-          paths: |
+          path: |
             frontend-scan.sarif
             api-scan.sarif
             worker-scan.sarif
