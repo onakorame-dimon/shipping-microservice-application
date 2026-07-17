@@ -3,7 +3,7 @@ import time
 import os
 import signal
 
-PORT = os.getenv('PORT')
+PORT = int(os.getenv('PORT', '6379'))
 HOST = os.getenv('HOST')
 PASSWORD = os.getenv('REDIS_PASSWORD')
 
