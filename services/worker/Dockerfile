@@ -1,21 +1,20 @@
-FROM python:3.12-slim 
+FROM python:3.12-alpine3.24
 
+# copy the program files to the container
 WORKDIR /app
 
 COPY . /app
 
-#create a virtual env
-RUN python3 -m venv .venv
+RUN <<EOF 
+python -m pip install --no-cache-dir --upgrade pip
+pip install --no-cache-dir -r requirements.txt
+EOF
 
-ENV VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH"
-
-RUN pip install -r requirements.txt
-
-#Create a system user: worker
-RUN  groupadd -r worker && useradd -r -g worker worker
-
-RUN chown -R worker:worker /app
+#Create a system user: worker and give permissions to the /app directory
+RUN <<EOF 
+addgroup -S worker && adduser -S worker -G worker
+chown -R worker:worker /app
+EOF
 
 USER worker
 
