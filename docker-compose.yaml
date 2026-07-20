@@ -2,7 +2,7 @@ name: project
 
 services:
   frontend:
-    image: "frontend:v2.0.0"
+    image: "frontend:v3.0.0"
      
     ports:
      - "3000:3000"
@@ -18,7 +18,7 @@ services:
     cpus: 0.5
 
   backend:
-    image: "backend:v2.0.0"
+    image: "api:v3.0.1"
     networks:
       - app-network
     depends_on:
@@ -29,7 +29,7 @@ services:
     cpus: 0.5
 
   worker:
-    image: "worker:v2.0.0"
+    image: "worker:v3.0.1"
     networks:
       - app-network    
     depends_on:
