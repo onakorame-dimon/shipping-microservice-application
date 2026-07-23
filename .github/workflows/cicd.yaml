@@ -328,6 +328,9 @@ jobs:
           docker load -i api.tar
           docker load -i worker.tar
 
+      - name: Set up docker-compose
+        uses: docker/setup-compose-action@v2
+
       - name: Run integration tests using docker-compose
         run: |
           docker-compose up 
