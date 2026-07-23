@@ -7,6 +7,7 @@ WORKDIR /app
 RUN npm  install 
 RUN apk add --no-cache curl  
 RUN chown -R node:node /app
+RUN npm install -g npm
 
 USER node
 
