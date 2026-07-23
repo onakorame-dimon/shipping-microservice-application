@@ -328,13 +328,15 @@ jobs:
           docker load -i api.tar
           docker load -i worker.tar
 
+      # TODO:Necessary?
       - name: Set up docker-compose
         uses: docker/setup-compose-action@v2
 
-      - name: Run integration tests using docker-compose
+      - name: Run integration tests using docker compose
         run: |
-          docker-compose up 
+          docker compose up 
 
+     
       - name: set up python
         uses: actions/setup-python@v6
         with:
@@ -352,5 +354,5 @@ jobs:
       - name: tear down stack
         if: always()
         run: |
-          docker-compose down
+          docker compose down
   
