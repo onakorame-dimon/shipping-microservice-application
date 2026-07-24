@@ -4,10 +4,10 @@ on:
   workflow_dispatch
   
 env:
-  HOST: ${{var.HOST}}
+  HOST: ${{vars.HOST}}
   REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
   PORT: ${{secrets.PORT}}
-  APP_ENV: ${{var.APP_ENV}}
+  APP_ENV: ${{vars.APP_ENV}}
   API_URL: ${{secrets.API_URL}}
 
 jobs:
