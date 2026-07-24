@@ -46,7 +46,7 @@ services:
     image: "redis:8.0-alpine"
     networks: 
       - app-network
-    env_file: .backend.env
+#    env_file: .backend.env
     command: /bin/sh -c "redis-server --requirepass $${REDIS_PASSWORD}" 
     healthcheck:
       test: redis-cli -a ${REDIS_PASSWORD} ping || exit 1
