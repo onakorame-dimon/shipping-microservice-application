@@ -16,7 +16,7 @@ def process_job(job_id):
     print(f"Done: {job_id}")
 
 while True:
-    job = r.brpop("job", timeout=5)
+    job = r.brpop("job", timeout=1)
     if job:
         _, job_id = job
         process_job(job_id.decode())
