@@ -115,6 +115,7 @@ jobs:
         ports:
           - "5000:5000"
 
+#TODO: Use environment variables to shorten these long names to IMAGE_NAME and IMAGE_TAG.
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -145,10 +146,11 @@ jobs:
         
       # TODO: Upload a single image as an artifact 
       - name: Save images as tar files
+      # TODO: combine all these save commands to a single line.
         run: |
-          docker save localhost:5000/frontend:latest -o frontend.tar
-          docker save localhost:5000/api:latest -o api.tar
-          docker save localhost:5000/worker:latest -o worker.tar
+          docker save localhost:5000/frontend:latest localhost:5000/frontend:${GITHUB_SHA} -o frontend.tar
+          docker save localhost:5000/api:latest localhost:5000/api:${GITHUB_SHA} -o api.tar
+          docker save localhost:5000/worker:latest localhost:5000/worker:${GITHUB_SHA} -o worker.tar
           
       - name: upload frontend image as artifacts
         uses: actions/upload-artifact@v7
