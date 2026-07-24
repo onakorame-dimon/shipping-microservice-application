@@ -9,7 +9,7 @@ services:
      - "3000:3000"
     networks:
         - app-network
-    env_file: .frontend.env
+#    env_file: .frontend.env
     depends_on:
        backend:
         condition: service_healthy
@@ -25,7 +25,7 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    env_file: .backend.env
+#    env_file: .backend.env
     mem_limit: 50m
     cpus: 0.5
 
@@ -36,7 +36,7 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    env_file: .backend.env
+#    env_file: .backend.env
     mem_limit: 50m
     cpus: 0.5
   
