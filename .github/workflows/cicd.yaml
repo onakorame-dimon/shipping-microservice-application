@@ -343,7 +343,7 @@ jobs:
 
       - name: Run integration tests using docker compose
         run: |
-          docker compose up 
+          docker compose up -d
 
      
       - name: set up python
