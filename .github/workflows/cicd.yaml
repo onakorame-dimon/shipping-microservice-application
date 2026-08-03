@@ -432,7 +432,8 @@ jobs:
             docker compose up -d
 
 #TODO: Remove debugging step
-      - name: capture stdout 
+      - name: capture stdout
+        if: always() 
         run: |
           echo "SSH Output: ${{ steps.ssh.outputs.stdout }}" 
 
