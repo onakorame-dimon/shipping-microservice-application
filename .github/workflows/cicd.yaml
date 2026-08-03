@@ -1,8 +1,7 @@
 name: CI/CD Pipeline
 
 # TODO: Optimization of entire workflow 
-
-on: 
+on:
   push:
     branches:
       - main
@@ -122,17 +121,16 @@ jobs:
     
     env:
       REGISTRY_URL: ${{secrets.REGISTRY_URL}}
-      IMAGE_TAG: ${{ github.sha }}
-
+      
       # SHA tagged images (ST)
-      ST_FRONTEND_IMAGE: ${REGISTRY_URL}/frontend:${IMAGE_TAG}
-      ST_API_IMAGE: ${REGISTRY_URL}/api:${IMAGE_TAG}
-      ST_WORKER_IMAGE: ${REGISTRY_URL}/worker:${IMAGE_TAG}
+      ST_FRONTEND_IMAGE: ${{secrets.REGISTRY_URL}}/frontend:${{ github.sha }}
+      ST_API_IMAGE: ${{secrets.REGISTRY_URL}}/api:${{ github.sha }}
+      ST_WORKER_IMAGE: ${{secrets.REGISTRY_URL}}/worker:${{ github.sha }}
 
       # Latest tagged images (LT)
-      LT_FRONTEND_IMAGE: ${REGISTRY_URL}/frontend:latest
-      LT_API_IMAGE: ${REGISTRY_URL}/api:latest
-      LT_WORKER_IMAGE: ${REGISTRY_URL}/worker:latest
+      LT_FRONTEND_IMAGE: ${{secrets.REGISTRY_URL}}/frontend:latest
+      LT_API_IMAGE: ${{secrets.REGISTRY_URL}}/api:latest
+      LT_WORKER_IMAGE: ${{secrets.REGISTRY_URL}}/worker:latest
 
     steps:     
       - name: Check out code
@@ -321,7 +319,7 @@ jobs:
           fi
     
   integration-test:
-    needs: build
+    needs: security-scan
     runs-on: ubuntu-latest
     steps: 
       - name: Check out code
