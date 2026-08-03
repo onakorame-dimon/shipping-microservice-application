@@ -356,13 +356,13 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' 
 
     steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
       - name: download image artifacts
         uses: actions/download-artifact@v7
         with:
-          name: images
-
-      - name: checkout code
-        uses: actions/checkout@v2        
+          name: images        
 
       - name: Create environment variables file
         run: |
