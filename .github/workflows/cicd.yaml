@@ -425,14 +425,17 @@ jobs:
           target: ${{secrets.APPDIR_PATH}}
     
       - name: Connect to server and deploy
-        id: ssh
+        env:
+          APPDIR_PATH: ${{secrets.APPDIR_PATH}}
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{secrets.SSH_HOST}}
           username: ${{secrets.SSH_USERNAME}}
           key: ${{secrets.SSH_PRIVATE_KEY}}
           port: ${{secrets.SSH_PORT}}
-
+          envs: APPDIR_PATH
+          # TODO: remove after troubleshooting
+          capture_stdout: true
           # TODO: Implement rolling update with docker swarm. Debug script 
           script: |
             cd $APPDIR_PATH            
