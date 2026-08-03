@@ -359,7 +359,10 @@ jobs:
       - name: download image artifacts
         uses: actions/download-artifact@v7
         with:
-          name: images        
+          name: images
+
+      - name: checkout code
+        uses: actions/checkout@v2        
 
       - name: Create environment variables file
         run: |
@@ -370,7 +373,7 @@ jobs:
           PORT=${{secrets.PORT}}
           API_URL=${{secrets.API_URL}}
           GITHUB_SHA=${{github.sha}}
-          REGISTRY_URL=${REGISTRY_URL}
+          REGISTRY_URL=${{secrets.REGISTRY_URL}}
           APPDIR_PATH=${{secrets.APPDIR_PATH}}
           EOL
 
@@ -382,7 +385,7 @@ jobs:
           key: ${{secrets.SSH_PRIVATE_KEY}}
           port: ${{secrets.SSH_PORT}}
           source: ".env"
-          target: ${{secrets.APPDIR_PATH}}/.env
+          target: ${{secrets.APPDIR_PATH}}
 
       - name: Copy images to server
         uses: appleboy/scp-action@master
@@ -392,7 +395,7 @@ jobs:
           key: ${{secrets.SSH_PRIVATE_KEY}}
           port: ${{secrets.SSH_PORT}}
           source: "images.tar"
-          target: ${{secrets.APPDIR_PATH}}/images.tar
+          target: ${{secrets.APPDIR_PATH}}
       
       - name: copy up-to-date compose file to server
         uses: appleboy/scp-action@master
@@ -402,7 +405,7 @@ jobs:
           key: ${{secrets.SSH_PRIVATE_KEY}}
           port: ${{secrets.SSH_PORT}}
           source: "docker-compose.yaml"
-          target: ${{secrets.APPDIR_PATH}}/docker-compose.yaml
+          target: ${{secrets.APPDIR_PATH}}
     
       - name: Connect to server and deploy
         uses: appleboy/ssh-action@v1.2.5
