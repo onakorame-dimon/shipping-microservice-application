@@ -414,6 +414,7 @@ jobs:
           target: ${{secrets.APPDIR_PATH}}
     
       - name: Connect to server and deploy
+        id: ssh
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{secrets.SSH_HOST}}
@@ -421,10 +422,17 @@ jobs:
           key: ${{secrets.SSH_PRIVATE_KEY}}
           port: ${{secrets.SSH_PORT}}
 
-          # TODO: Implement rolling update with docker swarm. 
+          # TODO: Implement rolling update with docker swarm. Debug script 
           script: |
-            cd $APPDIR_PATH
+            cd $APPDIR_PATH            
+            pwd 
+            ls -la
             docker load -i images.tar
             docker compose down
-            docker compose up -d 
+            docker compose up -d
+
+#TODO: Remove debugging step
+      - name: capture stdout 
+        run: |
+          echo "SSH Output: ${{ steps.ssh.outputs.stdout }}" 
 
