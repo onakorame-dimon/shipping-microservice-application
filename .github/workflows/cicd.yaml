@@ -376,6 +376,12 @@ jobs:
           REGISTRY_URL=${{secrets.REGISTRY_URL}}
           APPDIR_PATH=${{secrets.APPDIR_PATH}}
           EOL
+      
+    # TODO: remove debugging step
+      - name: view all files
+        run: |
+          ls -la
+          
 
       - name: Upload environment variables file to server
         uses: appleboy/scp-action@master
