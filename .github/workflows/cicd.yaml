@@ -1,7 +1,11 @@
 name: CI/CD Pipeline
 
+# TODO: Optimization of entire workflow 
+
 on: 
-  workflow_dispatch
+  push:
+    branches:
+      - main
   
 env:
   HOST: ${{vars.HOST}}
@@ -72,8 +76,9 @@ jobs:
           failure-threshold: "error"
   
   test:
+    needs: lint
     runs-on: ubuntu-latest
-    
+  
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -107,16 +112,29 @@ jobs:
           retention-days: 2
   
   build:
+    needs: test
     runs-on: ubuntu-latest
-
     services:
       registry:
         image: registry:3
         ports:
           - "5000:5000"
+    
+    env:
+      REGISTRY_URL: ${{secrets.REGISTRY_URL}}
+      IMAGE_TAG: ${{ github.sha }}
 
-#TODO: Use environment variables to shorten these long names to IMAGE_NAME and IMAGE_TAG.
-    steps:
+      # SHA tagged images (ST)
+      ST_FRONTEND_IMAGE: ${REGISTRY_URL}/frontend:${IMAGE_TAG}
+      ST_API_IMAGE: ${REGISTRY_URL}/api:${IMAGE_TAG}
+      ST_WORKER_IMAGE: ${REGISTRY_URL}/worker:${IMAGE_TAG}
+
+      # Latest tagged images (LT)
+      LT_FRONTEND_IMAGE: ${REGISTRY_URL}/frontend:latest
+      LT_API_IMAGE: ${REGISTRY_URL}/api:latest
+      LT_WORKER_IMAGE: ${REGISTRY_URL}/worker:latest
+
+    steps:     
       - name: Check out code
         uses: actions/checkout@v2
         
@@ -124,51 +142,43 @@ jobs:
         working-directory: ./services/frontend
         run: |
           echo "Building frontend Docker image. . ."
-          docker build -t localhost:5000/frontend:latest -t "localhost:5000/frontend:${GITHUB_SHA}" . 
+          docker build -t ${ST_FRONTEND_IMAGE} -t "${LT_FRONTEND_IMAGE}" .
 
       - name: Build api Docker image
         working-directory: ./services/api
         run: |
           echo "Building api Docker image. . ."
-          docker build -t localhost:5000/api:latest -t "localhost:5000/api:${GITHUB_SHA}" .
+          docker build -t ${ST_API_IMAGE} -t "${LT_API_IMAGE}" .
 
       - name: Build worker Docker image
         working-directory: ./services/worker
         run: |
           echo "Building worker Docker image. . ."
-          docker build -t localhost:5000/worker:latest -t "localhost:5000/worker:${GITHUB_SHA}" .
+          docker build -t ${ST_WORKER_IMAGE} -t "${LT_WORKER_IMAGE}" .
 
       - name: Push Docker images to local registry
         run: |
-          docker push localhost:5000/frontend:latest
-          docker push localhost:5000/api:latest
-          docker push localhost:5000/worker:latest
+          docker push --all-tags ${REGISTRY_URL}/frontend
+          docker push --all-tags ${REGISTRY_URL}/api
+          docker push --all-tags ${REGISTRY_URL}/worker
         
-      # TODO: Upload a single image as an artifact 
-      - name: Save images as tar files
-      # TODO: combine all these save commands to a single line.
+      - name: Save images as tar file
         run: |
-          docker save localhost:5000/frontend:latest localhost:5000/frontend:${GITHUB_SHA} -o frontend.tar
-          docker save localhost:5000/api:latest localhost:5000/api:${GITHUB_SHA} -o api.tar
-          docker save localhost:5000/worker:latest localhost:5000/worker:${GITHUB_SHA} -o worker.tar
+          docker save \ 
+          $ST_FRONTEND_IMAGE \
+          $LT_FRONTEND_IMAGE \
+          $ST_API_IMAGE \ 
+          $LT_API_IMAGE \
+          $ST_WORKER_IMAGE \
+          $LT_WORKER_IMAGE \
+          -o images.tar
           
-      - name: upload frontend image as artifacts
+      - name: upload images as artifact
         uses: actions/upload-artifact@v7
         with:
-          name: frontend-image
-          path: frontend.tar
-      
-      - name: upload api docker image as artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: api-image
-          path: api.tar
-
-      - name: upload worker docker image as artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: worker-image
-          path: worker.tar
+          name: images
+          path: images.tar
+           
 
 # TODO
 # Does using matrix strategy optimize pipeline execution time?
@@ -180,29 +190,30 @@ jobs:
       contents: read
       security-events: write
 
-# TODO: Use docker load images to download images from tar
+    env: 
+      REGISTRY_URL: ${{secrets.REGISTRY_URL}}
+      IMAGE_TAG: ${{ github.sha }}
+
+      # SHA tagged images (ST)
+      ST_FRONTEND_IMAGE: ${REGISTRY_URL}/frontend:${IMAGE_TAG}
+      ST_API_IMAGE: ${REGISTRY_URL}/api:${IMAGE_TAG}
+      ST_WORKER_IMAGE: ${REGISTRY_URL}/worker:${IMAGE_TAG}
     steps:
-      - name: download frontend artifact
+      - name: download images artifact
         uses: actions/download-artifact@v7
         with:
-          name: frontend-image
-
-      - name: download api image artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: api-image
-
-      - name: download worker image artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: worker-image
+          name: images
+      
+      - name: Load Docker images from tar files
+        run: |
+          docker load -i images.tar
 
     # Non-blocking trivy with visibility
 
       - name: frontend trivy non-blocking scan
         uses: aquasecurity/trivy-action@master
         with:
-          input: 'frontend.tar'
+          image-ref: ${REGISTRY_URL}/frontend:${GITHUB_SHA}
           format: 'table'
           exit-code: '0'
           vuln-type: 'os,library'
@@ -211,7 +222,7 @@ jobs:
       - name: api trivy non-blocking scan
         uses: aquasecurity/trivy-action@master
         with:
-          input: 'api.tar'
+          image-ref: ${REGISTRY_URL}/api:${GITHUB_SHA}
           format: 'table'
           exit-code: '0'
           vuln-type: 'os,library'
@@ -220,7 +231,7 @@ jobs:
       - name: worker trivy non-blocking scan
         uses: aquasecurity/trivy-action@master
         with:
-          input: 'worker.tar'
+          image-ref: ${REGISTRY_URL}/worker:${GITHUB_SHA}
           format: 'table'
           exit-code: '0'
           vuln-type: 'os,library'
@@ -232,7 +243,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
-          input: 'frontend.tar'
+          image-ref: ${REGISTRY_URL}/frontend:${GITHUB_SHA}
           format: 'sarif'
           output: 'frontend-scan.sarif'
           exit-code: '1'
@@ -245,7 +256,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
-          input: 'api.tar'
+          image-ref: ${REGISTRY_URL}/api:${GITHUB_SHA}
           format: 'sarif'
           output: 'api-scan.sarif'
           exit-code: '1'
@@ -258,7 +269,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
-          input: 'worker.tar'
+          image-ref: ${REGISTRY_URL}/worker:${GITHUB_SHA}
           format: 'sarif'
           output: 'worker-scan.sarif'
           exit-code: '1'
@@ -319,32 +330,16 @@ jobs:
       - name: Download frontend artifact
         uses: actions/download-artifact@v7
         with:
-          name: frontend-image
+          name: images
 
-      - name: Download api artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: api-image
-
-      - name: Download worker artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: worker-image
-
+      
       - name: Load Docker images from tar files
         run: |
-          docker load -i frontend.tar
-          docker load -i api.tar
-          docker load -i worker.tar
-
-      # TODO:Necessary?
-      - name: Set up docker-compose
-        uses: docker/setup-compose-action@v2
+          docker load -i images.tar
 
       - name: Run integration tests using docker compose
         run: |
           docker compose up -d
-
      
       - name: set up python
         uses: actions/setup-python@v6
@@ -364,4 +359,73 @@ jobs:
         if: always()
         run: |
           docker compose down
-  
+      
+  deploy:
+    needs: integration-test
+    runs-on: ubuntu-latest 
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' 
+
+    steps:
+      - name: download image artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: images        
+
+      - name: Create environment variables file
+        run: |
+          echo "Creating environment variables file. . ."
+          cat > .env <<EOL
+          REDIS_PASSWORD=${{secrets.REDIS_PASSWORD}}
+          HOST=${{vars.HOST}}
+          PORT=${{secrets.PORT}}
+          API_URL=${{secrets.API_URL}}
+          GITHUB_SHA=${{github.sha}}
+          REGISTRY_URL=${REGISTRY_URL}
+          APPDIR_PATH=${{secrets.APPDIR_PATH}}
+          EOL
+
+      - name: Upload environment variables file to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{secrets.SSH_HOST}}
+          username: ${{secrets.SSH_USERNAME}}
+          key: ${{secrets.SSH_PRIVATE_KEY}}
+          port: ${{secrets.SSH_PORT}}
+          source: ".env"
+          target: ${{secrets.APPDIR_PATH}}/.env
+
+      - name: Copy images to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{secrets.SSH_HOST}}
+          username: ${{secrets.SSH_USERNAME}}
+          key: ${{secrets.SSH_PRIVATE_KEY}}
+          port: ${{secrets.SSH_PORT}}
+          source: "images.tar"
+          target: ${{secrets.APPDIR_PATH}}/images.tar
+      
+      - name: copy up-to-date compose file to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{secrets.SSH_HOST}}
+          username: ${{secrets.SSH_USERNAME}}
+          key: ${{secrets.SSH_PRIVATE_KEY}}
+          port: ${{secrets.SSH_PORT}}
+          source: "docker-compose.yaml"
+          target: ${{secrets.APPDIR_PATH}}/docker-compose.yaml
+    
+      - name: Connect to server and deploy
+        uses: appleboy/ssh-action@1.2.5
+        with:
+          host: ${{secrets.SSH_HOST}}
+          username: ${{secrets.SSH_USERNAME}}
+          key: ${{secrets.SSH_PRIVATE_KEY}}
+          port: ${{secrets.SSH_PORT}}
+
+          # TODO: Implement rolling update with docker swarm. 
+          script: |
+            cd $APPDIR_PATH
+            docker load -i images.tar
+            docker compose down
+            docker compose up -d 
+
