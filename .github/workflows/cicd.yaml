@@ -190,12 +190,11 @@ jobs:
 
     env: 
       REGISTRY_URL: ${{secrets.REGISTRY_URL}}
-      IMAGE_TAG: ${{ github.sha }}
-
       # SHA tagged images (ST)
-      ST_FRONTEND_IMAGE: ${REGISTRY_URL}/frontend:${IMAGE_TAG}
-      ST_API_IMAGE: ${REGISTRY_URL}/api:${IMAGE_TAG}
-      ST_WORKER_IMAGE: ${REGISTRY_URL}/worker:${IMAGE_TAG}
+      ST_FRONTEND_IMAGE: ${{secrets.REGISTRY_URL}}/frontend:${{ github.sha }}
+      ST_API_IMAGE: ${{secrets.REGISTRY_URL}}/api:${{ github.sha }}
+      ST_WORKER_IMAGE: ${{secrets.REGISTRY_URL}}/worker:${{ github.sha }}
+    
     steps:
       - name: download images artifact
         uses: actions/download-artifact@v7
@@ -211,7 +210,7 @@ jobs:
       - name: frontend trivy non-blocking scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${REGISTRY_URL}/frontend:${GITHUB_SHA}
+          image-ref: $ST_FRONTEND_IMAGE
           format: 'table'
           exit-code: '0'
           vuln-type: 'os,library'
@@ -220,7 +219,7 @@ jobs:
       - name: api trivy non-blocking scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${REGISTRY_URL}/api:${GITHUB_SHA}
+          image-ref: $ST_API_IMAGE
           format: 'table'
           exit-code: '0'
           vuln-type: 'os,library'
@@ -229,7 +228,7 @@ jobs:
       - name: worker trivy non-blocking scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${REGISTRY_URL}/worker:${GITHUB_SHA}
+          image-ref: $ST_WORKER_IMAGE
           format: 'table'
           exit-code: '0'
           vuln-type: 'os,library'
@@ -241,7 +240,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${REGISTRY_URL}/frontend:${GITHUB_SHA}
+          image-ref: $ST_FRONTEND_IMAGE
           format: 'sarif'
           output: 'frontend-scan.sarif'
           exit-code: '1'
@@ -254,7 +253,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${REGISTRY_URL}/api:${GITHUB_SHA}
+          image-ref: $ST_API_IMAGE
           format: 'sarif'
           output: 'api-scan.sarif'
           exit-code: '1'
@@ -267,7 +266,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${REGISTRY_URL}/worker:${GITHUB_SHA}
+          image-ref: $ST_WORKER_IMAGE
           format: 'sarif'
           output: 'worker-scan.sarif'
           exit-code: '1'
