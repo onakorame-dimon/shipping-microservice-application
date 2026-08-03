@@ -162,10 +162,10 @@ jobs:
         
       - name: Save images as tar file
         run: |
-          docker save \ 
+          docker save \
           $ST_FRONTEND_IMAGE \
           $LT_FRONTEND_IMAGE \
-          $ST_API_IMAGE \ 
+          $ST_API_IMAGE \
           $LT_API_IMAGE \
           $ST_WORKER_IMAGE \
           $LT_WORKER_IMAGE \
