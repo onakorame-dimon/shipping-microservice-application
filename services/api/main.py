@@ -27,3 +27,7 @@ def get_job(job_id: str, r = Depends(get_redis)):
     if not status:
         return {"error": "not found"}
     return {"job_id": job_id, "status": status.decode()}
+
+@app.get("/health")
+def get_health():
+    return {"status": "Healthy"}
