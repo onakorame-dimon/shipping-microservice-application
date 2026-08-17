@@ -21,6 +21,6 @@ RUN apk add --no-cache curl
 USER api
 
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --start-interval=1s \
- CMD python3 /app/healthcheck.sh || exit 1
+ CMD sh /app/healthcheck.sh || exit 1
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
