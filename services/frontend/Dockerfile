@@ -14,6 +14,6 @@ USER node
 EXPOSE 3000
 
 HEALTHCHECK  --interval=10s --timeout=2s --start-period=5s --start-interval=1s \
-  CMD curl -I localhost:3000 || exit 1
+  CMD sh /app/healthcheck.sh || exit 1
 
 CMD ["node", "app.js"]
