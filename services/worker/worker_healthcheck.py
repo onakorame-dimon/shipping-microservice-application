@@ -1,17 +1,18 @@
 import redis
 import os
+import sys
 
 #Connect to the redis instance
 PORT = int(os.getenv('PORT', '6379'))
 HOST = os.getenv('HOST')
 PASSWORD = os.getenv('REDIS_PASSWORD')
 
-r = redis.Redis(host=HOST, port=PORT, password=PASSWORD)
-
-# Get a value by its key
-value = r.get("job")
-
-if value:
-    print(f"Value: {value}")
+try:
+    r = redis.Redis(host=HOST, port=PORT, password=PASSWORD)
+    ping_res = r.ping()
+except Exception as err:
+    print("An Error occurred: " + str(err))
+    sys.exit(1)
 else:
-    print("Key does not exist.")
+    print(f"Connection to Redis successfull: {ping_res}")
+

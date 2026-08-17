@@ -18,7 +18,7 @@ EOF
 
 USER worker
 
-HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --start-interval=1s \
+HEALTHCHECK --interval=10s --timeout=10s --start-period=5s --start-interval=1s \
  CMD python3 /app/worker_healthcheck.py || exit 1
 
 
