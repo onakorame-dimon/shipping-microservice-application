@@ -2,26 +2,23 @@ name: project
 
 services:
   frontend:
-  #image can ber replaced with environment variables: ${REGISTRY_URL}/${REPOSITORY}:${GITHUB_SHA}
-    image: "localhost:5000/frontend:${GITHUB_SHA}"
+    image: "${REGISTRY_URL}/${REPOSITORY}:${GITHUB_SHA}"
     environment:
-      - API_URL=${API_URL}
-     
+      - API_URL=${API_URL}    
     ports:
      - "3000:3000"
     networks:
         - app-network
-#    env_file: .frontend.env
     depends_on:
        backend:
         condition: service_healthy
        worker:
         condition: service_healthy
-    mem_limit: 50m
+    mem_limit: 200m
     cpus: 0.5
 
   backend:
-    image: "localhost:5000/api:${GITHUB_SHA}"
+    image: "${REGISTRY_URL}/${REPOSITORY}:${GITHUB_SHA}"
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - HOST=${HOST}
@@ -31,12 +28,11 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-#    env_file: .backend.env
-    mem_limit: 50m
+    mem_limit: 200m
     cpus: 0.5
 
   worker:
-    image: "localhost:5000/worker:${GITHUB_SHA}"
+    image: "${REGISTRY_URL}/${REPOSITORY}:${GITHUB_SHA}"
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - HOST=${HOST}
@@ -46,17 +42,13 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-#    env_file: .backend.env
-    mem_limit: 50m
+    mem_limit: 200m
     cpus: 0.5
   
-
-
   redis:
-    image: "redis:8.0-alpine"
+    image: "${REDIS_IMAGE}"
     networks: 
       - app-network
-#    env_file: .backend.env
     command: /bin/sh -c "redis-server --requirepass ${REDIS_PASSWORD}" 
     healthcheck:
       test: redis-cli -a ${REDIS_PASSWORD} ping || exit 1
@@ -65,7 +57,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
-    mem_limit: 50m
+    mem_limit: 200m
     cpus: 0.5
 
 networks:
