@@ -14,6 +14,7 @@ app.post('/submit', async (req, res) => {
     res.json(response.data);
   } catch (err) {
     res.status(500).json({ error: "something went wrong" });
+    console.error(err);
   }
 });
 
@@ -23,6 +24,7 @@ app.get('/status/:id', async (req, res) => {
     res.json(response.data);
   } catch (err) {
     res.status(500).json({ error: "something went wrong" });
+    console.error(err);
   }
 });
 
