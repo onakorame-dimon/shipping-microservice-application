@@ -297,6 +297,7 @@ jobs:
           docker load -i images.tar
 
       - name: Run integration tests using docker compose
+        id: run-integration-tests
         env:
           REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
           REDIS_HOST: ${{vars.HOST}}
@@ -327,6 +328,19 @@ jobs:
         if: always()
         run: |
           docker compose down
+      
+      - name: Collect logs on integration test failure
+        if: steps.run-integration-tests.outcome == 'failure'
+        run: |
+          ./debug/integration_test_logs.sh
+      
+      - name: Upload integration test logs
+        if: steps.run-integration-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: integration_test_logs
+
+  
       
   deploy:
     runs-on: ubuntu-latest 
