@@ -2,7 +2,7 @@ import redis
 import os
 import sys
 
-#Connect to the redis instance
+
 PORT = int(os.getenv('PORT', '6379'))
 HOST = os.getenv('HOST')
 PASSWORD = os.getenv('REDIS_PASSWORD')
@@ -15,4 +15,3 @@ except Exception as err:
     sys.exit(1)
 else:
     print(f"Connection to Redis successfull: {ping_res}")
-
