@@ -272,7 +272,9 @@ jobs:
       - name: Fail pipeline if any trivy scan fails
         if: always()
         run: |
-          if [[ "${{ steps.frontend-trivy-scan.outcome }}" == "failure" ]] || [[ "${{ steps.api-trivy-scan.outcome }}" == "failure" ]] || [[ "${{ steps.worker-trivy-scan.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.frontend-trivy-scan.outcome }}" == "failure" ]] ||
+             [[ "${{ steps.api-trivy-scan.outcome }}" == "failure" ]] || 
+             [[ "${{ steps.worker-trivy-scan.outcome }}" == "failure" ]]; then            
             echo "One or more security scans failed. Failing the pipeline."
             exit 1
           fi
@@ -303,7 +305,7 @@ jobs:
           FRONTEND_IMAGE: ${{vars.REGISTRY_URL}}/frontend:${{ github.sha }}
           BACKEND_IMAGE: ${{vars.REGISTRY_URL}}/api:${{ github.sha }}
           WORKER_IMAGE: ${{vars.REGISTRY_URL}}/worker:${{ github.sha }}
-          REDIS_IMAGE: ${{secrets.REDIS_IMAGE}}                   
+          REDIS_IMAGE: ${{vars.REDIS_IMAGE}}                   
         run: |
           docker compose up -d
      
@@ -348,7 +350,7 @@ jobs:
           FRONTEND_IMAGE: ${{vars.REGISTRY_URL}}/frontend:${{ github.sha }}
           BACKEND_IMAGE: ${{vars.REGISTRY_URL}}/api:${{ github.sha }}
           WORKER_IMAGE: ${{vars.REGISTRY_URL}}/worker:${{ github.sha }}
-          REDIS_IMAGE: ${{secrets.REDIS_IMAGE}}
+          REDIS_IMAGE: ${{vars.REDIS_IMAGE}}
           EOL
 
       - name: Upload environment variables file to server
