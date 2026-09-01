@@ -290,7 +290,16 @@ jobs:
 # TODO: Remove after tshoot
     runs-on: ubuntu-latest
     needs: build
-#    needs: security-scan  
+#    needs: security-scan 
+    env:
+      REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
+      REDIS_HOST: ${{vars.HOST}}
+      REDIS_PORT: ${{secrets.PORT}}
+      API_URL: ${{secrets.API_URL}}
+      FRONTEND_IMAGE: ${{vars.REGISTRY_URL}}/frontend:${{ github.sha }}
+      BACKEND_IMAGE: ${{vars.REGISTRY_URL}}/api:${{ github.sha }}
+      WORKER_IMAGE: ${{vars.REGISTRY_URL}}/worker:${{ github.sha }}
+      REDIS_IMAGE: ${{vars.REDIS_IMAGE}}
 
     steps: 
       - name: Check out code
@@ -306,16 +315,7 @@ jobs:
           docker load -i images.tar
 
       - name: Run integration tests using docker compose
-        id: run-integration-tests
-        env:
-          REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
-          REDIS_HOST: ${{vars.HOST}}
-          REDIS_PORT: ${{secrets.PORT}}
-          API_URL: ${{secrets.API_URL}}
-          FRONTEND_IMAGE: ${{vars.REGISTRY_URL}}/frontend:${{ github.sha }}
-          BACKEND_IMAGE: ${{vars.REGISTRY_URL}}/api:${{ github.sha }}
-          WORKER_IMAGE: ${{vars.REGISTRY_URL}}/worker:${{ github.sha }}
-          REDIS_IMAGE: ${{vars.REDIS_IMAGE}}                   
+        id: run-integration-tests                   
         run: |
           docker compose up -d
      
