@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# Log commands and their arguments as they are executed
+set -x
     
 mkdir -p integration_test_logs
 
@@ -9,7 +12,7 @@ if [ ! -f docker-compose.yaml ]; then
 fi
 
 # Container status
-docker compose -f docker-compose.yaml ps -a > integration_test_logs/compose-ps.txt 2>&1
+docker compose -f docker-compose.yaml ps -a > integration_test_logs/compose-ps.txt
 
 # Logs for each service
 for service in $(docker compose -f docker-compose.yaml config --services); do
