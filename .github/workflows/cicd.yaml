@@ -332,11 +332,6 @@ jobs:
       - name: Test job submission through frontend
         run: |
           python ./tests/submit_job.py
-
-      - name: tear down stack
-        if: always()
-        run: |
-          docker compose down
       
       - name: Collect logs on integration test failure  
         if: failure() && steps.run-integration-tests.outcome == 'failure'      
@@ -349,6 +344,11 @@ jobs:
         with:
           name: integration_test_logs
           path: integration_test_logs
+
+      - name: tear down stack
+        if: always()
+        run: |
+          docker compose down
       
   deploy:
     runs-on: ubuntu-latest 
