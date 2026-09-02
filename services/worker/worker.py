@@ -3,8 +3,8 @@ import time
 import os
 
 
-PORT = int(os.getenv('PORT', '6379'))
-HOST = os.getenv('HOST')
+PORT = int(os.getenv('REDIS_PORT', '6379'))
+HOST = os.getenv('REDIS_HOST')
 PASSWORD = os.getenv('REDIS_PASSWORD')
 
 r = redis.Redis(host=HOST, port=PORT, password=PASSWORD)

@@ -3,8 +3,8 @@ import os
 import sys
 
 
-PORT = int(os.getenv('PORT', '6379'))
-HOST = os.getenv('HOST')
+PORT = int(os.getenv('REDIS_PORT', '6379'))
+HOST = os.getenv('REDIS_HOST')
 PASSWORD = os.getenv('REDIS_PASSWORD')
 
 try:

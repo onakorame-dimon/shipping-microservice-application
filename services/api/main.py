@@ -4,9 +4,9 @@ import uuid
 import redis
 from fastapi import FastAPI, Depends
 
-PORT = int(os.getenv('PORT', '6379'))
+PORT = int(os.getenv('REDIS_PORT', '6379'))
 
-HOST = os.getenv('HOST')
+HOST = os.getenv('REDIS_HOST')
 
 PASSWORD = os.getenv('REDIS_PASSWORD')
 
