@@ -293,8 +293,8 @@ jobs:
 #    needs: security-scan 
     env:
       REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
-      REDIS_HOST: ${{vars.HOST}}
-      REDIS_PORT: ${{secrets.PORT}}
+      REDIS_HOST: ${{secrets.REDIS_HOST}}
+      REDIS_PORT: ${{secrets.REDIS_PORT}}
       API_URL: ${{secrets.API_URL}}
       FRONTEND_IMAGE: ${{vars.REGISTRY_URL}}/frontend:${{ github.sha }}
       BACKEND_IMAGE: ${{vars.REGISTRY_URL}}/api:${{ github.sha }}
@@ -363,8 +363,8 @@ jobs:
         run: |
           cat > .env <<EOL
           REDIS_PASSWORD=${{secrets.REDIS_PASSWORD}}
-          REDIS_HOST=${{vars.HOST}}
-          REDIS_PORT=${{secrets.PORT}}
+          REDIS_HOST=${{secrets.REDIS_HOST}}
+          REDIS_PORT=${{secrets.REDIS_PORT}}
           API_URL=${{secrets.API_URL}}
           GITHUB_SHA=${{github.sha}}
           REGISTRY_URL=${{vars.REGISTRY_URL}}
