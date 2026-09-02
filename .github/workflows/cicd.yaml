@@ -1,21 +1,17 @@
 name: CI/CD Pipeline
 
 on: 
-  
-#  push:
-#    branches:
-#      - main
-#  pull_request:
-#    branches:
-#      - main
-
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
 
   lint:
-# TODO: Remove after tshoot
-    if: false  
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -68,8 +64,6 @@ jobs:
           failure-threshold: "error"
   
   test:
-# TODO: Remove after tshoot
-    if: false 
     runs-on: ubuntu-latest
     needs: lint
 
@@ -107,8 +101,7 @@ jobs:
   
   build:    
     runs-on: ubuntu-latest
-# TODO: Remove after tshoot
-#    needs: test
+    needs: test
 
     services:
       registry:
@@ -172,8 +165,6 @@ jobs:
           path: images.tar
              
   security-scan:
-  # TODO: Remove after tshoot
-    if: false 
     runs-on: ubuntu-latest
     needs: build
 
@@ -287,10 +278,9 @@ jobs:
           fi
     
   integration-test:
-# TODO: Remove after tshoot
     runs-on: ubuntu-latest
-    needs: build
-#    needs: security-scan 
+    needs: security-scan 
+    
     env:
       REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
       REDIS_HOST: ${{secrets.REDIS_HOST}}
