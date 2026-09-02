@@ -5,6 +5,7 @@ from main import app, get_redis
 
 client = TestClient(app)
 
+
 class TestJobs(unittest.TestCase):
 
     def test_create_job(self):
@@ -16,7 +17,9 @@ class TestJobs(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         mock_redis.lpush.assert_called_once_with("job", job_id)
-        mock_redis.hset.assert_called_once_with(f"job:{job_id}", "status", "queued")
+        mock_redis.hset.assert_called_once_with(
+            f"job:{job_id}", "status", "queued"
+            )
 
         app.dependency_overrides.clear()
 
@@ -28,7 +31,9 @@ class TestJobs(unittest.TestCase):
         response = client.get("/jobs/abc-123")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {"job_id": "abc-123", "status": "queued"})
+        self.assertEqual(
+            response.json(), {"job_id": "abc-123", "status": "queued"}
+            )
         mock_redis.hget.assert_called_once_with("job:abc-123", "status")
 
         app.dependency_overrides.clear()

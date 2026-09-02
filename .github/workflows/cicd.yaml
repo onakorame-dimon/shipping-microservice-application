@@ -1,15 +1,9 @@
 name: CI/CD Pipeline
 
-# TODO: Optimization of entire workflow 
 on: 
-  
-#  push:
-#    branches:
-#      - main
-#  pull_request:
-#    branches:
-#      - main
-
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -113,17 +107,17 @@ jobs:
           - "5000:5000"
     
     env:
-      REGISTRY_URL: ${{secrets.REGISTRY_URL}}
+      REGISTRY_URL: ${{vars.REGISTRY_URL}}
 
       # SHA tagged images (ST)
-      ST_FRONTEND_IMAGE: ${{secrets.REGISTRY_URL}}/frontend:${{ github.sha }}
-      ST_API_IMAGE: ${{secrets.REGISTRY_URL}}/api:${{ github.sha }}
-      ST_WORKER_IMAGE: ${{secrets.REGISTRY_URL}}/worker:${{ github.sha }}
+      ST_FRONTEND_IMAGE: ${{vars.REGISTRY_URL}}/frontend:${{ github.sha }}
+      ST_API_IMAGE: ${{vars.REGISTRY_URL}}/api:${{ github.sha }}
+      ST_WORKER_IMAGE: ${{vars.REGISTRY_URL}}/worker:${{ github.sha }}
 
       # Latest tagged images (LT)
-      LT_FRONTEND_IMAGE: ${{secrets.REGISTRY_URL}}/frontend:latest
-      LT_API_IMAGE: ${{secrets.REGISTRY_URL}}/api:latest
-      LT_WORKER_IMAGE: ${{secrets.REGISTRY_URL}}/worker:latest
+      LT_FRONTEND_IMAGE: ${{vars.REGISTRY_URL}}/frontend:latest
+      LT_API_IMAGE: ${{vars.REGISTRY_URL}}/api:latest
+      LT_WORKER_IMAGE: ${{vars.REGISTRY_URL}}/worker:latest
 
     steps:     
       - name: Check out code
@@ -191,7 +185,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{secrets.REGISTRY_URL}}/frontend:${{ github.sha }}
+          image-ref: ${{vars.REGISTRY_URL}}/frontend:${{ github.sha }}
           format: 'sarif'
           output: 'frontend-scan.sarif'
           exit-code: '1'
@@ -204,7 +198,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{secrets.REGISTRY_URL}}/api:${{ github.sha }}
+          image-ref: ${{vars.REGISTRY_URL}}/api:${{ github.sha }}
           format: 'sarif'
           output: 'api-scan.sarif'
           exit-code: '1'
@@ -217,7 +211,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{secrets.REGISTRY_URL}}/worker:${{ github.sha }}
+          image-ref: ${{vars.REGISTRY_URL}}/worker:${{ github.sha }}
           format: 'sarif'
           output: 'worker-scan.sarif'
           exit-code: '1'
@@ -273,14 +267,26 @@ jobs:
       - name: Fail pipeline if any trivy scan fails
         if: always()
         run: |
-          if [[ "${{ steps.frontend-trivy-scan.outcome }}" == "failure" ]] || [[ "${{ steps.api-trivy-scan.outcome }}" == "failure" ]] || [[ "${{ steps.worker-trivy-scan.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.frontend-trivy-scan.outcome }}" == "failure" ]] ||
+             [[ "${{ steps.api-trivy-scan.outcome }}" == "failure" ]] || 
+             [[ "${{ steps.worker-trivy-scan.outcome }}" == "failure" ]]; then            
             echo "One or more security scans failed. Failing the pipeline."
             exit 1
           fi
     
   integration-test:
     runs-on: ubuntu-latest
-    needs: security-scan  
+    needs: security-scan 
+
+    env:
+      REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
+      REDIS_HOST: ${{secrets.REDIS_HOST}}
+      REDIS_PORT: ${{secrets.REDIS_PORT}}
+      API_URL: ${{secrets.API_URL}}
+      FRONTEND_IMAGE: ${{vars.REGISTRY_URL}}/frontend:${{ github.sha }}
+      BACKEND_IMAGE: ${{vars.REGISTRY_URL}}/api:${{ github.sha }}
+      WORKER_IMAGE: ${{vars.REGISTRY_URL}}/worker:${{ github.sha }}
+      REDIS_IMAGE: ${{vars.REDIS_IMAGE}}
 
     steps: 
       - name: Check out code
@@ -296,15 +302,7 @@ jobs:
           docker load -i images.tar
 
       - name: Run integration tests using docker compose
-        env:
-          REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
-          REDIS_HOST: ${{vars.HOST}}
-          REDIS_PORT: ${{secrets.PORT}}
-          API_URL: ${{secrets.API_URL}}
-          FRONTEND_IMAGE: ${{secrets.REGISTRY_URL}}/frontend:${{ github.sha }}
-          BACKEND_IMAGE: ${{secrets.REGISTRY_URL}}/api:${{ github.sha }}
-          WORKER_IMAGE: ${{secrets.REGISTRY_URL}}/worker:${{ github.sha }}
-          REDIS_IMAGE: ${{secrets.REDIS_IMAGE}}                   
+        id: run-integration-tests                   
         run: |
           docker compose up -d
      
@@ -321,6 +319,18 @@ jobs:
       - name: Test job submission through frontend
         run: |
           python ./tests/submit_job.py
+      
+      - name: Collect logs on integration test failure  
+        if: failure() && steps.run-integration-tests.outcome == 'failure'      
+        run: |
+          ./debug/integration_test_logs.sh
+      
+      - name: Upload integration test logs
+        if: failure() && steps.run-integration-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: integration_test_logs
+          path: integration_test_logs
 
       - name: tear down stack
         if: always()
@@ -330,8 +340,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest 
     needs: integration-test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' 
-
+    if: github.ref == 'refs/heads/main' 
+    
     steps:
       - name: checkout code
         uses: actions/checkout@v2        
@@ -340,16 +350,16 @@ jobs:
         run: |
           cat > .env <<EOL
           REDIS_PASSWORD=${{secrets.REDIS_PASSWORD}}
-          REDIS_HOST=${{vars.HOST}}
-          REDIS_PORT=${{secrets.PORT}}
+          REDIS_HOST=${{secrets.REDIS_HOST}}
+          REDIS_PORT=${{secrets.REDIS_PORT}}
           API_URL=${{secrets.API_URL}}
           GITHUB_SHA=${{github.sha}}
-          REGISTRY_URL=${{secrets.REGISTRY_URL}}
+          REGISTRY_URL=${{vars.REGISTRY_URL}}
           APPDIR_PATH=${{secrets.APPDIR_PATH}}
-          FRONTEND_IMAGE: ${{secrets.REGISTRY_URL}}/frontend:${{ github.sha }}
-          BACKEND_IMAGE: ${{secrets.REGISTRY_URL}}/api:${{ github.sha }}
-          WORKER_IMAGE: ${{secrets.REGISTRY_URL}}/worker:${{ github.sha }}
-          REDIS_IMAGE: ${{secrets.REDIS_IMAGE}}
+          FRONTEND_IMAGE: ${{vars.REGISTRY_URL}}/frontend:${{ github.sha }}
+          BACKEND_IMAGE: ${{vars.REGISTRY_URL}}/api:${{ github.sha }}
+          WORKER_IMAGE: ${{vars.REGISTRY_URL}}/worker:${{ github.sha }}
+          REDIS_IMAGE: ${{vars.REDIS_IMAGE}}
           EOL
 
       - name: Upload environment variables file to server
