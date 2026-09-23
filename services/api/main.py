@@ -2,7 +2,7 @@ import os
 import uuid
 
 import redis
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 
 PORT = int(os.getenv('REDIS_PORT', '6379'))
 
@@ -18,7 +18,7 @@ def get_redis():
 
 
 @app.post("/jobs")
-def create_job(r=Depends(get_redis)):
+def create_job():
     job_id = str(uuid.uuid4())
     r.lpush("job", job_id)
     r.hset(f"job:{job_id}", "status", "queued")
@@ -26,7 +26,7 @@ def create_job(r=Depends(get_redis)):
 
 
 @app.get("/jobs/{job_id}")
-def get_job(job_id: str, r=Depends(get_redis)):
+def get_job(job_id: str):
     status = r.hget(f"job:{job_id}", "status")
     if not status:
         return {"error": "not found"}
