@@ -321,7 +321,7 @@ jobs:
 
       - name: Test job submission through frontend
         run: |
-          python ./tests/submit_job.py
+          python ./services/tests/submit_job.py
       
       - name: Collect logs on integration test failure  
         if: failure() && steps.run-integration-tests.outcome == 'failure'      
