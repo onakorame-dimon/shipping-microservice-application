@@ -87,7 +87,7 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Run tests
-        working-directory: ./services/api        
+        working-directory: ./services/tests/    
         run: |
           pytest --cov=main test.py --cov-report xml:coverage.xml
           ls -l 
