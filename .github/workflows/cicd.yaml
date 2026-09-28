@@ -419,7 +419,7 @@ jobs:
             docker compose up -d
 
       - name: Test deployment
-        if: steps.connect-and-deploy == 'success'
+        if: steps.connect-and-deploy.outcome == 'success'
         run: ./services/tests/test_deploy.sh ${{vars.APP_URL}}
 
 
