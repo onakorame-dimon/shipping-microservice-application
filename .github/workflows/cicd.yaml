@@ -89,7 +89,7 @@ jobs:
       - name: Run tests
         working-directory: ./services/tests/    
         run: |
-          pytest --cov=main test.py --cov-report xml:coverage.xml
+          pytest --cov=main test_api.py --cov-report xml:coverage.xml
           ls -l 
 
       - name: Upload coverage report
