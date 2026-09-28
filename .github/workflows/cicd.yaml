@@ -87,9 +87,9 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Run tests
-        working-directory: ./services/api        
+        working-directory: ./services/tests/    
         run: |
-          pytest --cov=main test.py --cov-report xml:coverage.xml
+          pytest --cov=main test_api.py --cov-report xml:coverage.xml
           ls -l 
 
       - name: Upload coverage report
@@ -321,7 +321,7 @@ jobs:
 
       - name: Test job submission through frontend
         run: |
-          python ./tests/submit_job.py
+          python ./services/tests/submit_job.py
       
       - name: Collect logs on integration test failure  
         if: failure() && steps.run-integration-tests.outcome == 'failure'      
