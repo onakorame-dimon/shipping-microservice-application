@@ -96,7 +96,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: pytest-coverage-report
-          path: ./services/api/coverage.xml
+          path: ./services/tests/coverage.xml
           retention-days: 2
   
   build:    
@@ -341,7 +341,8 @@ jobs:
           docker compose down
       
   deploy:
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
+    environment: development
     needs: integration-test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
@@ -401,6 +402,7 @@ jobs:
           target: ${{secrets.APPDIR_PATH}}
     
       - name: Connect to server and deploy
+        id: connect-and-deploy
         env:
           APPDIR_PATH: ${{secrets.APPDIR_PATH}}
         uses: appleboy/ssh-action@v1.2.5
@@ -411,11 +413,15 @@ jobs:
           port: ${{secrets.SSH_PORT}}
           envs: APPDIR_PATH          
           script: |
-            cd $APPDIR_PATH            
-            pwd 
-            ls -la
+            cd $APPDIR_PATH             
             docker load -i images.tar
             docker compose down
             docker compose up -d
+
+      - name: Test deployment
+        if: steps.connect-and-deploy == 'success'
+        run: ./services/tests/test_deploy.sh ${{vars.APP_URL}}
+
+
 
 
