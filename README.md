@@ -1,31 +1,93 @@
-# Project Title
+# Shipping Distributed Application
 
-A brief description of the project. What it does and who it's for.
+A multi-container job-processing application built for the HNG Stage 2 DevOps track. The original project requirements are available [here](docs/REQUIREMENTS.md).
 
-## Table of contents
+This project tests the ability to take a provided multi-service application and make it production-ready through containerization and a full CI/CD pipeline.
 
-- 
--
--
 
-## Features 
+## Architecture
 
-## Installation
+![Application architecture](docs/architecture.png)
 
-### 1.
+The application consists of four containers:
 
-### 2. 
+| Component | Responsibility |
+| --- | --- |
+| Frontend | Node.js and Express web interface for submitting jobs and checking their status. |
+| API | FastAPI service that creates job IDs, queues jobs in Redis, and returns job status. |
+| Worker | Python background process that consumes queued jobs and updates their status. |
+| Redis | Stores the job queue and job-status data. Accessible to the other containers over the Compose network. |
 
-### 3.
+The frontend is exposed on port `3000`; the other services communicate over the Docker Compose network.
 
-## Usage
+## Getting Started
 
-## Technologies used
+### Prerequisites 
+- Git  
+- Docker  
+- Docker Compose v2.
 
-## Contributing
+### Steps to run locally
 
-Contributions are always welcome
+Verify all required programms are installed. 
 
-## Licence
+```bash
+git --version
+docker --version
+docker compose version
+```
 
-This project is licenced under [Licence name]
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/onakorame-dimon/shipping-microservice-application.git
+cd shipping-microservice-application
+```
+
+### 2. Build the application images
+
+The Compose file uses image names supplied through environment variables, so build the three application images first:
+
+**IMPORTANT:** Remember to romve the names in curly braces and tag the image with whatever name you choose. 
+
+```bash
+docker build -t {FRONTEND_IMAGE} ./services/frontend
+docker build -t {BACKEND_IMAGE} ./services/api
+docker build -t {WORKER_IMAGE} ./services/worker
+```
+
+### 3. Configure the environment
+
+Replace example environment variable with the requirend configuration variables:
+
+```bash
+cp .env.example .env
+```
+**IMPORTANT:** The `.env` file should **NOT** be commited to git!
+
+### 4. Start the application
+
+```bash
+docker compose up -d
+```
+
+### 5. Submit and check a job
+
+You can use the web interface to submit a job.
+
+Open [http://localhost:3000](http://localhost:3000).
+
+![submit job](docs/submit_job.png)
+
+### 6. Stop the application
+
+```bash
+docker compose down
+```
+## Repository documentation
+
+| File | Purpose |
+| --- | --- |
+| [Project requirements](docs/REQUIREMENTS.md) |Contains the project tasks  |
+| [Reflections ](docs/REFLECTIONS.md)  | Key decisions, challenges, and lessons learned during implementation
+| [Fixes](docs/FIXES.md)  |  document containing every bug found in original application code. 
