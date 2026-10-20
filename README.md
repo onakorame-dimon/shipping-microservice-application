@@ -65,6 +65,20 @@ cp .env.example .env
 ```
 **IMPORTANT:** The `.env` file should **NOT** be commited to git!
 
+#### Required configuration variables
+
+
+| Variable | Purpose | Local example |
+| --- | --- | --- |
+| `FRONTEND_IMAGE` | Frontend image reference | `local/frontend:dev` |
+| `BACKEND_IMAGE` | API image reference | `local/api:dev` |
+| `WORKER_IMAGE` | Worker image reference | `local/worker:dev` |
+| `REDIS_IMAGE` | Redis image reference | `redis:8.0-alpine` |
+| `API_URL` | API address used by the frontend container | `http://api:8000` |
+| `REDIS_HOST` | Redis service name on the Compose network | `redis` |
+| `REDIS_PORT` | Redis port | `6379` |
+| `REDIS_PASSWORD` | Password required for redis connection | Set a local development value |
+
 ### 4. Start the application
 
 ```bash
@@ -77,7 +91,11 @@ You can use the web interface to submit a job.
 
 Open [http://localhost:3000](http://localhost:3000).
 
-![submit job](docs/submit_job.png)
+![submit job](docs/submit_job_dashboard.png)
+
+click on the `Submit New Job` button to receive the job response
+
+![job response](docs/job_reponse.png)
 
 ### 6. Stop the application
 
