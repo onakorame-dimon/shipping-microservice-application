@@ -7,7 +7,7 @@ on:
       - '**.md'
       - '**.txt'
       - 'docs/**'
-      
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
