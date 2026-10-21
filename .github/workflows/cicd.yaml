@@ -2,8 +2,12 @@ name: CI/CD Pipeline
 
 on: 
   push:
-    branches:
-      - main
+    branches: main
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - 'docs/**'
+      
   workflow_dispatch:
 
 jobs:
