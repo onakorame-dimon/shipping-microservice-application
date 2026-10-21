@@ -7,7 +7,7 @@ This project tests the ability to take a provided multi-service application and 
 
 ## Architecture
 
-![Application architecture](docs/architecture.png)
+![Application architecture](docs/img/architecture.png)
 
 The application consists of four containers:
 
@@ -91,11 +91,11 @@ You can use the web interface to submit a job.
 
 Open [http://localhost:3000](http://localhost:3000).
 
-![submit job](docs/submit_job_dashboard.png)
+![submit job](docs/img/submit_job_dashboard.png)
 
 click on the `Submit New Job` button to receive the job response
 
-![job response](docs/job_reponse.png)
+![job response](docs/img/job_reponse.png)
 
 ### 6. Stop the application
 
