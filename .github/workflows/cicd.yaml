@@ -8,6 +8,9 @@ on:
       - '**.txt'
       - 'docs/**'
       - '.github/workflows/**'
+      - '*.env.example'
+      - '.gitignore'
+      
   workflow_dispatch:
 
 jobs:
