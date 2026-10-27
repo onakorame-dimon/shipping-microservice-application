@@ -8,7 +8,7 @@ This project tests the ability to take a provided multi-service application and 
 ## Architecture
 
 <p align="center">
-<img width="60%" src="docs/img/architecture.png">
+<img width="60%" height="70%" src="docs/img/architecture.png">
 </p>
 
 The application consists of four containers:
