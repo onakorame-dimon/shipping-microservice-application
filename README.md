@@ -7,7 +7,7 @@ This project tests the ability to take a provided multi-service application and 
 
 ## Architecture
 
-![Application architecture](docs/img/architecture.png)
+<img width="375" height="357" src="docs/img/architecture.png">
 
 The application consists of four containers:
 
