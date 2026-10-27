@@ -48,7 +48,7 @@ cd shipping-microservice-application
 
 The Compose file uses image names supplied through environment variables, so build the three application images first:
 
-**IMPORTANT:** Remember to romve the names in curly braces and tag the image with whatever name you choose. 
+**IMPORTANT:** Remember to remove the names in curly braces and tag the image with whatever name you choose. 
 
 ```bash
 docker build -t {FRONTEND_IMAGE} ./services/frontend
