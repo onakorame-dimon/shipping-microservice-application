@@ -68,9 +68,12 @@ Job runs on pushes to main only
 - A failure in any stage must prevent all subsequent stages from running.
 
 ### 4. Document It
-• A README.md that explains how to bring the entire stack up on a clean machine from scratch — list prerequisites, all commands, and what a successful startup looks like
-• A FIXES.md documenting every bug found — file, line number, what it was, and how you fixed it
-• A .env.example committed with placeholder values for every required variable
+
+- A README.md that explains how to bring the entire stack up on a clean machine from scratch — list prerequisites, all commands, and what a successful startup looks like
+
+- A FIXES.md documenting every bug found — file, line number, what it was, and how you fixed it
+
+- A .env.example committed with placeholder values for every required variable
 
 ### Rules
 - Your fork must be public. Private repositories will not be graded
