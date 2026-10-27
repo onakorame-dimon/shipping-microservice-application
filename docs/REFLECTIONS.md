@@ -4,9 +4,9 @@ These are the lessons I picked up while working on this project. Some came from 
 
 1. **TWhy tag an image with the Git SHA**
 
-   Tagging an image with the git SHA helps you know which commit the image corresponds to.
-   tagging an image with `latest` is convenient, but it doesn't tell you which commit the image corresponds to.
-   If a problem arises, it can help you connect the image running to the code that produced it and help you narrow down which changes might have introduced the problem.  
+   Every commit in git has a unique hash, like a3f9c2e1... (40 characters). GitHub exposes the current commit's hash to your workflow as an environment variable called GITHUB_SHA. 
+
+   A Docker tag is just a label pointing at an image. If you only ever push myapp:latest, every build overwrites the same label — you lose the ability to say "which code is actually running in production right now?" or "roll back to yesterday's build." Tagging with the SHA gives every image build a unique, permanent, traceable name tied to the exact code that produced it. latest is just a convenience pointer that always floats to the newest one — nice for local dev, useless for auditing or rollbacks.
 
 
 2. **`$GITHUB_SHA` vs. `${{ github.sha }}`**
@@ -32,28 +32,46 @@ These are the lessons I picked up while working on this project. Some came from 
    In addition, memory limits should not be set to the minimum possible value, but always configure buffers to account for unknown and random events.
 
    
-5. **Do actions make a workflow faster than `run` commands?**
+5. **Using an action versus using a `run` command?**
 
-   This started with a question: would using an action instead of a `run` command make my pipeline faster? After looking into it, I realised neither option is automatically faster. What matters is what I want to accomplish. 
+   This started with a question that came to mind: would using an action instead of a `run` command make my pipeline faster? After looking into it, I realised that using an action isn't necessarily faster.  
+   
+   Pipeline performance is rather dependent on:
+   - dependency download time
+   - use of caching
+   - runner startup time
+   - tool installation time e.t.c.
 
-   I  don't need to hide every pipeline logic behind an action. A `run: pytest` or `run: flake8` step makes it easy to see what's happening. Actions are useful when a task has substantial setup, needs to be reused, or can be handled by a reliable existing action.
+   Also, you don't need to hide every pipeline logic behind an action. A 
+   `run: pytest` or `run: flake8` step makes it easy to see what's happening. 
+   
+   Actions are useful when a task has substantial setup, needs to be reused, or can be handled by a reliable existing action.
 
 6. **One step or several?**
 
    I also wondered whether putting several commands in one step would be faster than splitting them into separate steps. 
    
-   I realised that fewer steps don't automatically mean a faster workflow. Separate steps make logs easier to follow and give a clearer control over conditions, timeouts, and failures. GitHub's [workflow syntax documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax) explains the controls available for individual steps.
+   I realised that fewer steps don't automatically mean a faster workflow. Although, separate steps make logs easier to follow and give a clearer control over conditions, timeouts, and failures. GitHub's [workflow syntax documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax) explains the controls available for individual steps.
    
    It is helpful to keep related commands together when that makes sense, but you don't need to always bundle everything into one step.
 
 7. **What to test**
 
-   The first test I wrote was quite cumbersome. 
-   I was  testing every little implementation detail, including whether `lpush` and `hset` were called. I kept running into mocking and
-   patching issues while running the implementation. Although, working through these challenges helped me better understand these concepts, I started wondering how much testing code I would have to write when working with large codebase and if it made sense writing so much code for test.
+   Heck, in my initial test I was testing every line, ensuring lpush and hset was called. Started experiencing some monkey patching and mock issues that almost turned me into a monkey. phew!
+   Although, I did get some needed clarification on my understanding of monkeypatching, patching, and mocking.  
+   I guess the realisation came to me when I realised how much I would need to write if I was working on a large codebase and if this actually made sense. 
    
-   I did some reading and came across a the correct approach when testing: **test the behavior, not every implementation detail.**
+   This prompeted me to do some research, and I realised some principles that helped me write better tests.
+   Here's a cool article on testing I found helpful should you decide to
+   [dig deeper](https://martinfowler.com/articles/practical-test-pyramid.html?utm_source=chatgpt.com)
+
+   The principles:
+   1. Test behavior, not implementation:
+   The test should help understand what the function is supposed to do
+   even without knowing how it should be implemented.
+
+   Per the [pytest docs](https://docs.pytest.org/en/stable/explanation/anatomy.html): "But exactly how or why something is done is not quite as important as what was done." 
+
+   2. You don't need a test for every line
    
-   Instead of checking every method call, check that the code produces the expected result. 
-   
-   [This article on practical testing](https://martinfowler.com/articles/practical-test-pyramid.html) helped me understand why tests shouldn't be tied too closely to implementation details and how to decide what to test.
+   3. A good rule of thumb: Every meaningful if, else, exception path, or alternative outcome deserves consideration.
