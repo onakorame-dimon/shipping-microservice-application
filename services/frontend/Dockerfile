@@ -1,13 +1,21 @@
 FROM node:24-alpine3.24
 
-COPY . /app 
+WORKDIR /app 
 
-WORKDIR /app
+COPY package*.json ./
 
-RUN npm  install 
-RUN apk add --no-cache curl  
+# Uses the /root/.npm cache mount
+RUN --mount=type=cache,target=/root/.npm \
+    npm install
+
+#  Uses the /var/cache/apk cache mount
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add curl
+
+
 RUN chown -R node:node /app
-RUN npm install -g npm
+
+COPY . .
 
 USER node
 
