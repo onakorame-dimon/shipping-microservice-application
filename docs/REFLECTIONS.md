@@ -9,7 +9,7 @@ These are the lessons I picked up while working on this project. Some came from 
    A Docker tag is just a label pointing at an image. If you only ever push myapp:latest, every build overwrites the same label — you lose the ability to say "which code is actually running in production right now?" or "roll back to yesterday's build." Tagging with the SHA gives every image build a unique, permanent, traceable name tied to the exact code that produced it. latest is just a convenience pointer that always floats to the newest one — nice for local dev, useless for auditing or rollbacks.
 
 
-2. ## `$GITHUB_SHA` vs. `${{ github.sha }}`
+## 2. `$GITHUB_SHA` vs. `${{ github.sha }}`
 
    Both gives the commit SHA for the workflow run, but they come from different places. `$GITHUB_SHA` is an environment variable provided by GitHub Actions, so I can use it directly in a shell command inside a `run` step. `${{ github.sha }}` is a context expression evaluated by GitHub Actions. They give the same value, just through different mechanisms. In Bash, you can reference the environment variable as `$GITHUB_SHA` inside a `run` command. GitHub explains both in its [variables and contexts documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/variables).
 
